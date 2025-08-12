@@ -1,0 +1,14 @@
+.github
+.awscache
+config
+dist
+example
+public
+node_modules
+.editorconfig
+.prettier*
+junit.xml
+*.yml
+__tests__
+docs
+tools
