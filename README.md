@@ -8,7 +8,7 @@ A comprehensive system verification tool for DryvIQ deployments across different
 
 ```bash
 cd dryviq-system-check
-chmod +x syscheck.sh
+find . -name "*.sh" -type f -exec chmod +x {} +
 ./syscheck.sh
 ```
 
