@@ -4,7 +4,7 @@
 
 A comprehensive system verification tool for DryvIQ deployments across different Kubernetes environments. This tool validates system requirements, network connectivity, security policies, and deployment readiness for DryvIQ platform installations.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 cd dryviq-system-check
@@ -12,7 +12,7 @@ chmod +x syscheck.sh
 ./syscheck.sh
 ```
 
-## 📋 Overview
+## Overview
 
 The DryvIQ SysCheck performs automated validation of your Kubernetes environment to ensure it meets all requirements for a successful DryvIQ deployment. It supports three deployment environments:
 
@@ -20,7 +20,7 @@ The DryvIQ SysCheck performs automated validation of your Kubernetes environment
 - **EKS** (Amazon Elastic Kubernetes Service)  
 - **K3s** (On-premises Kubernetes)
 
-## 🛠 Features
+## Features
 
 - **Interactive Environment Selection**: Choose your target deployment environment
 - **Kubernetes Context Management**: Automatically detect and switch between kubectl contexts
@@ -29,7 +29,7 @@ The DryvIQ SysCheck performs automated validation of your Kubernetes environment
 - **Summary Reporting**: Final summary table with all check results
 - **Verbose and Debug Modes**: Additional logging for troubleshooting
 
-## 📊 System Checks
+## System Checks
 
 The tool performs the following checks in sequence:
 
@@ -45,7 +45,7 @@ The tool performs the following checks in sequence:
 | 🛡️ **Network Policies** | `check_network_policies.sh` | All | Examines network policies affecting DryvIQ:<br/>• Lists existing NetworkPolicy resources<br/>• Validates inter-pod communication rules<br/>• Identifies overly restrictive policies |
 | 📦 **Database Connectivity** | `check_db_connectivity.sh` | AKS/EKS only | Tests in-cluster connectivity to external databases:<br/>• Deploys temporary test pods for validation<br/>• Tests TCP connectivity to PostgreSQL/Aurora endpoints<br/>• Uses busybox + netcat for lightweight testing<br/>• Automatically cleans up test resources |
 
-## 🎯 Usage
+## Usage
 
 ### Basic Usage
 ```bash
@@ -67,7 +67,7 @@ The tool performs the following checks in sequence:
 ./syscheck.sh --verbose --debug
 ```
 
-## 📝 Interactive Prompts
+## Interactive Prompts
 
 The script will prompt you for:
 
@@ -79,7 +79,7 @@ The script will prompt you for:
    - **K3s**: Node information (manual input)
 4. **Database Endpoints** (optional): PostgreSQL/Aurora endpoints for connectivity testing
 
-## 📊 Output Format
+## Output Format
 
 Each check produces status indicators:
 
@@ -104,7 +104,7 @@ Each check produces status indicators:
     [FAIL] api.portalarchitects.com not reachable
 ```
 
-## 🔧 Environment Variables
+## Environment Variables
 
 The following environment variables are used internally and set based on user input:
 
@@ -113,7 +113,7 @@ The following environment variables are used internally and set based on user in
 - `CLUSTER_NAME`: Kubernetes cluster name
 - `DB_ENDPOINTS`: Database endpoints for connectivity testing
 
-## 📂 File Structure
+## File Structure
 
 ```
 dryviq-system-check/
@@ -130,7 +130,7 @@ dryviq-system-check/
     └── check_db_connectivity.sh   # Database connectivity tests
 ```
 
-## 🛠 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -175,7 +175,7 @@ This provides:
 - Detailed command output
 - Script execution flow
 
-## 🚀 Prerequisites
+## Prerequisites
 
 - **kubectl** (v1.29+)
 - **helm** (v3.0+)
@@ -183,11 +183,11 @@ This provides:
 - Network access to target Kubernetes cluster
 - Appropriate cloud CLI tools (az for AKS, aws for EKS)
 
-## 📄 License
+## License
 
 This tool is part of the DryvIQ platform deployment toolkit.
 
-## 🤝 Support
+## Support
 
 For issues or questions regarding the DryvIQ SysCheck:
 
