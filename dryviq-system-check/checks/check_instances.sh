@@ -81,8 +81,6 @@ if [[ "$ENVIRONMENT" == "aks" ]]; then
     Standard_E4s_V5 Standard_E4ps_V5 \
     Standard_D4ps_V5 Standard_D8ps_V5 \
     Standard_E8s_V5 Standard_E8ps_V5"
-fi
-
 
   for POOL in dryviq migration discover proxy clickhouse; do
     pool_info=$(az aks nodepool show --resource-group "$RESOURCE_GROUP" --cluster-name "$CLUSTER_NAME" --name "$POOL" 2>/dev/null)
@@ -107,6 +105,7 @@ fi
       FAIL=1
     fi
   done
+fi
 
 if [[ "$ENVIRONMENT" == "eks" ]]; then
   declare -A ALLOWED_EKS_INSTANCES
