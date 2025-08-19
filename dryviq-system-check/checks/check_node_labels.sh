@@ -67,7 +67,7 @@ if [[ "$ENVIRONMENT" == "aks" ]]; then
     done
 
 elif [[ "$ENVIRONMENT" == "k3s" ]]; then
-    REQUIRED_NODES=(dryviq clickhouse logging worker1)
+    REQUIRED_NODES=(dryviq clickhouse postgres logging worker1)
     for name in "${REQUIRED_NODES[@]}"; do
         if ! kubectl get nodes | grep -qw "$name"; then
             print_status FAIL "Node named '$name' not found"
