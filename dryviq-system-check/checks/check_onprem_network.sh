@@ -42,9 +42,9 @@ if [[ -z "$PRIMARY_NODE" ]]; then
   PRIMARY_NODE="$(kubectl get nodes -o name 2>/dev/null | sed 's|node/||' | head -1 || true)"
 fi
 
-SECONDARY_NODE="$(kubectl get nodes -l nodeType=worker -o name 2>/dev/null | sed 's|node/||' | grep -x 'worker1' || true)"
+SECONDARY_NODE="$(kubectl get nodes -l kubernetes.io/hostname=worker1 -o name 2>/dev/null | sed 's|node/||' | grep -x 'worker1' || true)"
 if [[ -z "$SECONDARY_NODE" ]]; then
-  SECONDARY_NODE="$(kubectl get nodes -l nodeType=worker -o name 2>/dev/null | sed 's|node/||' | head -1 || true)"
+  SECONDARY_NODE="$(kubectl get nodes -l kubernetes.io/hostname=worker1 -o name 2>/dev/null | sed 's|node/||' | head -1 || true)"
 fi
 
 SINGLE_NODE=0
