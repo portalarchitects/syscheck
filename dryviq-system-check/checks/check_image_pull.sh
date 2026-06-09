@@ -12,8 +12,8 @@ source "$SCRIPT_DIR/common.sh"
 
 READINESS_TIMEOUT="${PREFLIGHT_READINESS_TIMEOUT:-120s}"
 CURL_MAX_TIME="${PREFLIGHT_CURL_MAX_TIME:-15}"
-REGISTRY="${PREFLIGHT_REGISTRY:-skysync.azurecr.io}"
-BLOB_HOST="${PREFLIGHT_BLOB_HOST:-skysyncblob.blob.core.windows.net}"
+REGISTRY="${PREFLIGHT_REGISTRY:-dryviq.azurecr.io}"
+BLOB_HOST="${PREFLIGHT_BLOB_HOST:-dryviq.eastus.data.azurecr.io}"
 # Optional: a fully-qualified image the cluster has creds for, to do a live pull.
 TEST_IMAGE="${PREFLIGHT_TEST_IMAGE:-}"
 PULL_SECRET="${PREFLIGHT_PULL_SECRET:-}"

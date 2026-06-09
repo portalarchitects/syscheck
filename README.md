@@ -123,7 +123,7 @@ Each check produces status indicators:
 
 🌐  NETWORKING
     [PASS] stackgres.io reachable
-    [PASS] skysync.azurecr.io reachable
+    [PASS] dryviq.azurecr.io reachable
     [FAIL] api.portalarchitects.com not reachable
 ```
 

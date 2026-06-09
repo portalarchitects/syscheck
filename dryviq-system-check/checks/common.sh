@@ -40,9 +40,9 @@ print_status() {
 required_egress_endpoints() {
   cat <<'EOF'
 stackgres.io
-skysync.azurecr.io
+dryviq.azurecr.io
+dryviq.eastus.data.azurecr.io
 api.portalarchitects.com
-skysyncblob.blob.core.windows.net
 EOF
 }
 
