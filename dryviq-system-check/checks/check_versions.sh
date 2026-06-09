@@ -51,6 +51,37 @@ else
     fi
 fi
 
+# Cluster server version (skew vs client matters for some APIs)
+srv=$(kubectl version --output=yaml 2>/dev/null | grep -A6 serverVersion | grep gitVersion | head -1 | awk '{print $2}' | sed 's/v//')
+if [[ -n "$srv" ]]; then
+    if [[ "$(printf '%s\n' "$KUBECTL_MIN" "$srv" | sort -V | head -n1)" != "$KUBECTL_MIN" ]]; then
+        print_status WARN "Kubernetes server version $srv < $KUBECTL_MIN (recommended minimum)"
+    else
+        print_status PASS "Kubernetes server version $srv"
+    fi
+else
+    print_status WARN "Unable to determine Kubernetes server version (cluster unreachable?)"
+fi
+
+# Cloud CLI presence/version, per environment
+if [[ "$ENVIRONMENT" == "aks" ]]; then
+    if command -v az &>/dev/null; then
+        az_ver=$(az version --output tsv 2>/dev/null | awk '{print $1}' | head -1)
+        print_status PASS "az CLI present (${az_ver:-version unknown})"
+    else
+        print_status FAIL "az CLI not installed (required for AKS checks)"
+        FAIL=1
+    fi
+elif [[ "$ENVIRONMENT" == "eks" ]]; then
+    if command -v aws &>/dev/null; then
+        aws_ver=$(aws --version 2>&1 | grep -oE 'aws-cli/[0-9.]+' | head -1)
+        print_status PASS "aws CLI present (${aws_ver:-version unknown})"
+    else
+        print_status FAIL "aws CLI not installed (required for EKS checks)"
+        FAIL=1
+    fi
+fi
+
 if [[ "$FAIL" == "0" ]]; then
     print_status PASS "All required tool versions present."
 else
