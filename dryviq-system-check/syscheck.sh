@@ -19,17 +19,54 @@ YELLOW_BOLD='\033[1;33m'
 # ==== UX SETTINGS ====
 VERBOSE=0
 DEBUG=0
+NON_INTERACTIVE=0
+
+# Values that can be supplied up front to skip prompts (also honored from env).
+ENV_ARG="${ENVIRONMENT:-}"
+CTX_ARG=""
+RG_ARG="${RESOURCE_GROUP:-}"
+CLUSTER_ARG="${CLUSTER_NAME:-}"
+DB_ARG="${DB_ENDPOINTS:-}"
+
+usage() {
+  cat <<EOF
+Usage: $0 [options]
+
+  -v, --verbose            Stream each check's output as it runs
+  -d, --debug              Verbose diagnostics and raw check output
+  -y, --non-interactive    Never prompt; use supplied flags/env and current context
+      --env ENV            Target environment: aks | eks | k3s
+      --context NAME       kubectl context to use
+      --resource-group RG  AKS resource group
+      --cluster NAME       Cluster name (AKS/EKS)
+      --db-endpoints LIST  Postgres endpoints (host[:port], space/comma separated)
+  -h, --help               Show this help
+
+All flags may also be provided via environment variables: ENVIRONMENT,
+RESOURCE_GROUP, CLUSTER_NAME, DB_ENDPOINTS.
+EOF
+}
 
 # ==== HANDLE ARGUMENTS ====
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -v|--verbose) VERBOSE=1 ;;
     -d|--debug)   DEBUG=1 ;;
-    -h|--help)
-      echo "Usage: $0 [--verbose] [--debug]"
-      exit 0
-      ;;
+    -y|--non-interactive|--yes) NON_INTERACTIVE=1 ;;
+    --env)             ENV_ARG="$2"; shift ;;
+    --env=*)           ENV_ARG="${1#*=}" ;;
+    --context)         CTX_ARG="$2"; shift ;;
+    --context=*)       CTX_ARG="${1#*=}" ;;
+    --resource-group)  RG_ARG="$2"; shift ;;
+    --resource-group=*) RG_ARG="${1#*=}" ;;
+    --cluster)         CLUSTER_ARG="$2"; shift ;;
+    --cluster=*)       CLUSTER_ARG="${1#*=}" ;;
+    --db-endpoints)    DB_ARG="$2"; shift ;;
+    --db-endpoints=*)  DB_ARG="${1#*=}" ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
   esac
+  shift
 done
 
 # ==== HEADER ====
@@ -48,19 +85,29 @@ print_header() {
 print_header
 
 # ==== ENVIRONMENT SELECTION ====
-echo
-echo "Which environment are you checking?"
-echo "  1) AKS (Azure Kubernetes Service)"
-echo "  2) EKS (Amazon EKS)"
-echo "  3) K3s (on-prem)"
-read -rp "Enter 1, 2, or 3: " env_num
+if [[ -n "$ENV_ARG" ]]; then
+  ENVIRONMENT="$(echo "$ENV_ARG" | tr '[:upper:]' '[:lower:]')"
+  case "$ENVIRONMENT" in
+    aks|eks|k3s) ;;
+    *) echo "Invalid --env '$ENV_ARG' (expected aks|eks|k3s). Exiting."; exit 1 ;;
+  esac
+  echo
+  echo -e "Environment: ${BLUE_BOLD}$ENVIRONMENT${ENDCOLOR}"
+else
+  echo
+  echo "Which environment are you checking?"
+  echo "  1) AKS (Azure Kubernetes Service)"
+  echo "  2) EKS (Amazon EKS)"
+  echo "  3) K3s (on-prem)"
+  read -rp "Enter 1, 2, or 3: " env_num
 
-case "$env_num" in
-  1) ENVIRONMENT="aks" ;;
-  2) ENVIRONMENT="eks" ;;
-  3) ENVIRONMENT="k3s" ;;
-  *) echo "Unknown option. Exiting."; exit 1 ;;
-esac
+  case "$env_num" in
+    1) ENVIRONMENT="aks" ;;
+    2) ENVIRONMENT="eks" ;;
+    3) ENVIRONMENT="k3s" ;;
+    *) echo "Unknown option. Exiting."; exit 1 ;;
+  esac
+fi
 export ENVIRONMENT
 
 # ==== KUBECTL CONTEXT ====
@@ -68,28 +115,39 @@ echo
 CURRENT_CTX=$(kubectl config current-context 2>/dev/null)
 echo -e "Current kubectl context: ${BLUE_BOLD}$CURRENT_CTX${ENDCOLOR}"
 
-echo
-echo "Available kube contexts:"
-kubectl config get-contexts --no-headers | awk '{print NR ") " $2}' | tee /tmp/kube_context_list.txt
-
-echo
-read -rp "Use current context [$CURRENT_CTX]? (y/n): " use_current
-if [[ "$use_current" =~ ^[Nn]$ ]]; then
-  echo
-  read -rp "Enter number of context to use: " ctx_num
-  NEW_CTX=$(awk -v n="$ctx_num" 'NR==n{print $2}' /tmp/kube_context_list.txt)
-  if [[ -n "$NEW_CTX" ]]; then
-    kubectl config use-context "$NEW_CTX" >/dev/null
-    echo -e "Switched to context: ${BLUE_BOLD}$NEW_CTX${ENDCOLOR}"
+if [[ -n "$CTX_ARG" ]]; then
+  if kubectl config use-context "$CTX_ARG" >/dev/null 2>&1; then
+    echo -e "Using context: ${BLUE_BOLD}$CTX_ARG${ENDCOLOR}"
   else
-    echo -e "${RED_BOLD}Invalid selection. Exiting.${ENDCOLOR}"
-    rm -f /tmp/kube_context_list.txt
+    echo -e "${RED_BOLD}Context '$CTX_ARG' not found. Exiting.${ENDCOLOR}"
     exit 1
   fi
-else
+elif [[ "$NON_INTERACTIVE" == "1" ]]; then
   echo -e "Using current context: ${BLUE_BOLD}$CURRENT_CTX${ENDCOLOR}"
+else
+  echo
+  echo "Available kube contexts:"
+  kubectl config get-contexts --no-headers | awk '{print NR ") " $2}' | tee /tmp/kube_context_list.txt
+
+  echo
+  read -rp "Use current context [$CURRENT_CTX]? (y/n): " use_current
+  if [[ "$use_current" =~ ^[Nn]$ ]]; then
+    echo
+    read -rp "Enter number of context to use: " ctx_num
+    NEW_CTX=$(awk -v n="$ctx_num" 'NR==n{print $2}' /tmp/kube_context_list.txt)
+    if [[ -n "$NEW_CTX" ]]; then
+      kubectl config use-context "$NEW_CTX" >/dev/null
+      echo -e "Switched to context: ${BLUE_BOLD}$NEW_CTX${ENDCOLOR}"
+    else
+      echo -e "${RED_BOLD}Invalid selection. Exiting.${ENDCOLOR}"
+      rm -f /tmp/kube_context_list.txt
+      exit 1
+    fi
+  else
+    echo -e "Using current context: ${BLUE_BOLD}$CURRENT_CTX${ENDCOLOR}"
+  fi
+  rm -f /tmp/kube_context_list.txt
 fi
-rm -f /tmp/kube_context_list.txt
 
 # ==== CLOUD ENVIRONMENT PROMPTS ====
 normalize_db_endpoints() {
@@ -112,28 +170,41 @@ normalize_db_endpoints() {
 
 if [[ "$ENVIRONMENT" == "aks" ]]; then
   echo
-  read -rp "Enter your AKS Resource Group: " RESOURCE_GROUP
-  read -rp "Enter your AKS Cluster Name: " CLUSTER_NAME
+  RESOURCE_GROUP="$RG_ARG"
+  CLUSTER_NAME="$CLUSTER_ARG"
+  if [[ "$NON_INTERACTIVE" != "1" ]]; then
+    [[ -z "$RESOURCE_GROUP" ]] && read -rp "Enter your AKS Resource Group: " RESOURCE_GROUP
+    [[ -z "$CLUSTER_NAME" ]] && read -rp "Enter your AKS Cluster Name: " CLUSTER_NAME
+  fi
   export RESOURCE_GROUP
   export CLUSTER_NAME
 
-  echo
-  read -rp "Optional: Enter Postgres endpoints (host[:port], space/comma separated) for in-cluster reachability test: " DB_INPUT
-  if [[ -n "$DB_INPUT" ]]; then
-    DB_ENDPOINTS="$(normalize_db_endpoints "$DB_INPUT")"
-    export DB_ENDPOINTS
+  if [[ -n "$DB_ARG" ]]; then
+    DB_ENDPOINTS="$(normalize_db_endpoints "$DB_ARG")"; export DB_ENDPOINTS
+  elif [[ "$NON_INTERACTIVE" != "1" ]]; then
+    echo
+    read -rp "Optional: Enter Postgres endpoints (host[:port], space/comma separated) for in-cluster reachability test: " DB_INPUT
+    if [[ -n "$DB_INPUT" ]]; then
+      DB_ENDPOINTS="$(normalize_db_endpoints "$DB_INPUT")"; export DB_ENDPOINTS
+    fi
   fi
 
 elif [[ "$ENVIRONMENT" == "eks" ]]; then
   echo
-  read -rp "Enter your EKS Cluster Name: " CLUSTER_NAME
+  CLUSTER_NAME="$CLUSTER_ARG"
+  if [[ "$NON_INTERACTIVE" != "1" ]]; then
+    [[ -z "$CLUSTER_NAME" ]] && read -rp "Enter your EKS Cluster Name: " CLUSTER_NAME
+  fi
   export CLUSTER_NAME
 
-  echo
-  read -rp "Optional: Enter Postgres/Aurora endpoints (host[:port], space/comma separated) for in-cluster reachability test: " DB_INPUT
-  if [[ -n "$DB_INPUT" ]]; then
-    DB_ENDPOINTS="$(normalize_db_endpoints "$DB_INPUT")"
-    export DB_ENDPOINTS
+  if [[ -n "$DB_ARG" ]]; then
+    DB_ENDPOINTS="$(normalize_db_endpoints "$DB_ARG")"; export DB_ENDPOINTS
+  elif [[ "$NON_INTERACTIVE" != "1" ]]; then
+    echo
+    read -rp "Optional: Enter Postgres/Aurora endpoints (host[:port], space/comma separated) for in-cluster reachability test: " DB_INPUT
+    if [[ -n "$DB_INPUT" ]]; then
+      DB_ENDPOINTS="$(normalize_db_endpoints "$DB_INPUT")"; export DB_ENDPOINTS
+    fi
   fi
 fi
 

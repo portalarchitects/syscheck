@@ -60,7 +60,7 @@ if command -v ufw &>/dev/null && sudo ufw status | grep -q "Status: active"; the
     echo "Detected ufw is active."
     ufw_status=1
     for port in "${REQUIRED_TCP_PORTS[@]}"; do
-        if sudo ufw status | grep -q "$port/tcp"; then
+        if sudo ufw status | grep -qw "$port/tcp"; then
             print_status PASS "Port $port/tcp allowed by ufw"
         else
             print_status FAIL "Port $port/tcp NOT open in ufw"
@@ -68,7 +68,7 @@ if command -v ufw &>/dev/null && sudo ufw status | grep -q "Status: active"; the
         fi
     done
     for port in "${REQUIRED_UDP_PORTS[@]}"; do
-        if sudo ufw status | grep -q "$port/udp"; then
+        if sudo ufw status | grep -qw "$port/udp"; then
             print_status PASS "Port $port/udp allowed by ufw"
         else
             print_status FAIL "Port $port/udp NOT open in ufw"
@@ -77,7 +77,7 @@ if command -v ufw &>/dev/null && sudo ufw status | grep -q "Status: active"; the
     done
     # Optional ports (etcd/HA)
     for port in "${OPTIONAL_TCP_PORTS[@]}"; do
-        if sudo ufw status | grep -q "$port/tcp"; then
+        if sudo ufw status | grep -qw "$port/tcp"; then
             print_status WARN "Port $port/tcp allowed (optional: needed only for HA with embedded etcd)"
         else
             print_status WARN "Port $port/tcp NOT open (only needed for HA with embedded etcd)"
