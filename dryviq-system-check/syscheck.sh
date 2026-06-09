@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ==== CONFIGURABLES ====
-CHECK_LABELS=( "FIREWALL" "MACHINE TYPES" "NETWORKING" "ON-PREM CONNECTIVITY" "NODE LABELS" "TOOL VERSIONS" "ADMISSION CONSTRAINTS" "NETWORK POLICIES" "CLOUD DB CONNECTIVITY" )
-CHECK_SCRIPTS=( "check_firewall.sh" "check_instances.sh" "check_networking.sh" "check_onprem_network.sh" "check_node_labels.sh" "check_versions.sh" "check_constraints.sh" "check_network_policies.sh" "check_db_connectivity.sh" )
-STEP_ICONS=( 🛡️ 🖥️ 🌐 🔗 🏷️ ⚙️ 🧩 🛡️ 📦 )
+CHECK_LABELS=( "FIREWALL" "TIME SYNC" "MACHINE TYPES" "NODE CAPACITY" "NODE LABELS" "TOOL VERSIONS" "DNS" "NETWORKING" "IMAGE PULL" "CLOUD NETWORK" "ON-PREM CONNECTIVITY" "LOAD BALANCER" "STORAGE" "ADMISSION CONSTRAINTS" "NETWORK POLICIES" "CLOUD DB CONNECTIVITY" )
+CHECK_SCRIPTS=( "check_firewall.sh" "check_time_sync.sh" "check_instances.sh" "check_capacity.sh" "check_node_labels.sh" "check_versions.sh" "check_dns.sh" "check_networking.sh" "check_image_pull.sh" "check_cloud_network.sh" "check_onprem_network.sh" "check_loadbalancer.sh" "check_storage.sh" "check_constraints.sh" "check_network_policies.sh" "check_db_connectivity.sh" )
+STEP_ICONS=( 🛡️ ⏱️ 🖥️ 📊 🏷️ ⚙️ 🔤 🌐 📥 ☁️ 🔗 🔀 💾 🧩 🚧 📦 )
 
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
