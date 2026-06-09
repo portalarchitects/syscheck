@@ -43,6 +43,7 @@ stackgres.io
 dryviq.azurecr.io
 dryviq.eastus.data.azurecr.io
 api.portalarchitects.com
+skysyncblob.blob.core.windows.net
 EOF
 }
 
